@@ -31,8 +31,6 @@ def read_IBE_sensor(data_filename, params_filename):
         js = json.load(f)
     df = convert_IBE_json_to_df(js, calibration_params)
     df = df.resample("H").mean()
-    # remove outliers
-    # df = df[(np.abs(stats.zscore(df)) < 3).all(axis=1)]
     return df
 
 
@@ -99,6 +97,7 @@ def similarity_common_variables(arpav_df, ibe_df, ibe_name, variables=None, wind
         variables = ["NO2", "O3", "CO", "T", "RH"]
 
     pearson_rs = {}
+    nrmses = {}
     for v in variables:
         if v in arpav_df and v in ibe_df:
             unique_df = pd.concat([arpav_df[v].rename(f"ARPAV {v}"), ibe_df[v].rename(f"IBE {v}")], axis=1).dropna()
@@ -115,14 +114,16 @@ def similarity_common_variables(arpav_df, ibe_df, ibe_name, variables=None, wind
             pearson_rs[v] = overall_r
             pearson_ax.set_ylim([-1, 1])
             pearson_ax.axhline(overall_r, color="red", linestyle="--")
-            pearson_ax.set_title(f"{v} - Moving window pearson R - Overall R: {overall_r}")
+            pearson_ax.set_title(f"{v} - Moving window pearson R - R complessivo: {overall_r:.3f}")
 
             rmse_ser = rol.apply(rmse, raw=False)
             # rmse_avg = rmse_ser.mean()
             overall_rmse = mean_squared_error(unique_df[f"ARPAV {v}"], unique_df[f"IBE {v}"], squared=False)
+            if unique_df[f"ARPAV {v}"].max() - unique_df[f"ARPAV {v}"].min() > 0:
+                nrmses[v] = overall_rmse / (unique_df[f"ARPAV {v}"].max() - unique_df[f"ARPAV {v}"].min())
             rmse_ser.plot(ax=rmse_ax)
             rmse_ax.axhline(overall_rmse, color="red", linestyle="--")
-            rmse_ax.set_title(f"{v} - Moving window RMSE - Overall RMSE: {overall_rmse:.3f}")
+            rmse_ax.set_title(f"{v} - Moving window RMSE - RMSE complessivo: {overall_rmse:.3f}")
             if v in units:
                 rmse_ax.set_ylabel(units[v])
 
@@ -135,7 +136,7 @@ def similarity_common_variables(arpav_df, ibe_df, ibe_name, variables=None, wind
 
             arpav_df[v].plot(ax=data_ax, label=f"ARPAV {v}")
             ibe_df[v].plot(ax=data_ax, label=f"IBE {v}")
-            data_ax.set_title(f"ARPAV vs IBE {ibe_name}")
+            data_ax.set_title(f"Confronto tra ARPAV e IBE {ibe_name}")
             if v in units:
                 data_ax.set_ylabel(units[v])
             data_ax.legend()
@@ -151,7 +152,7 @@ def similarity_common_variables(arpav_df, ibe_df, ibe_name, variables=None, wind
         pearson_df = pd.DataFrame.from_dict(pearson_rs, orient="index", columns=["Pearson"])
         pearson_df.plot.bar(ax=summary_ax)
         summary_ax.set_ylim([-1, 1])
-        summary_ax.set_title(f"Correlation between {ibe_name} and ARPAV")
+        summary_ax.set_title(f"Correlazione tra {ibe_name} e ARPAV")
         for p in summary_ax.patches:
             h = p.get_height()
             if h > 0:
@@ -159,6 +160,28 @@ def similarity_common_variables(arpav_df, ibe_df, ibe_name, variables=None, wind
             else:
                 label_y = 0.05
             summary_ax.annotate(f"{p.get_height():.3f}", (p.get_x()+p.get_width()/2., label_y), ha="center")
+        if save_graphs:
+            graph_directory = Path(f"similarity_graphs/{ibe_name}")
+            graph_directory.mkdir(parents=True, exist_ok=True)
+            graph_filename = graph_directory.joinpath(f"summary.png")
+            plt.savefig(graph_filename)
+
+    if len(nrmses) > 0:
+        summary_f, summary_ax = plt.subplots()
+        nrmse_df = pd.DataFrame.from_dict(nrmses, orient="index", columns=["Pearson"])
+        nrmse_df.plot.bar(ax=summary_ax)
+        summary_ax.set_ylim([0, None])
+        summary_ax.set_title(f"RMSE normalizzato tra {ibe_name} e ARPAV")
+        for p in summary_ax.patches:
+            h = p.get_height()
+            label_y = h + 0.05
+            summary_ax.annotate(f"{p.get_height():.3f}", (p.get_x() + p.get_width() / 2., label_y), ha="center")
+        if save_graphs:
+            graph_directory = Path(f"similarity_graphs/{ibe_name}")
+            graph_directory.mkdir(parents=True, exist_ok=True)
+            graph_filename = graph_directory.joinpath(f"nrmse.png")
+            plt.savefig(graph_filename)
+
     if show:
         plt.show()
 
@@ -185,6 +208,12 @@ def main():
     sensor_name = "SMART53"
     ibe_df = read_IBE_sensor(f"{sensor_name}.json", f"{sensor_name}.params.json")
     restricted_ibe_df = ibe_df[(ibe_df.index > f"2020-07-01") & (ibe_df.index < f"2020-07-27")]
+
+    # remove outliers
+    for col in restricted_ibe_df:
+        print(restricted_ibe_df[col])
+        z_score = (restricted_ibe_df[col] - restricted_ibe_df[col].mean()) / restricted_ibe_df[col].std(ddof=0)
+        restricted_ibe_df[col][z_score >= 3] = np.nan
 
     arpav_df = read_ARPAV_station("MMC.csv")
     restricted_arpav_df = arpav_df[(arpav_df.index > f"2020-07-01") & (arpav_df.index < f"2020-07-27")]
