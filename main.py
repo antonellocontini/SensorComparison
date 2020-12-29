@@ -138,13 +138,13 @@ def similarity_common_variables(reference_df, test_df, reference_name, test_name
 
             reference_df[v].plot(ax=data_ax, label=f"{reference_name} {v}")
             test_df[v].plot(ax=data_ax, label=f"{test_name} {v}")
-            data_ax.set_title(f"Confronto tra ARPAV e {test_name}")
+            data_ax.set_title(f"Confronto tra {test_name} e {test_name}")
             if v in units:
                 data_ax.set_ylabel(units[v])
             data_ax.legend()
             plt.tight_layout()
             if save_graphs:
-                graph_directory = Path(f"similarity_graphs/{test_name}")
+                graph_directory = Path(f"similarity_graphs/{reference_name} v {test_name}")
                 graph_directory.mkdir(parents=True, exist_ok=True)
                 graph_filename = graph_directory.joinpath(f"{v}.png")
                 plt.savefig(graph_filename)
@@ -154,7 +154,7 @@ def similarity_common_variables(reference_df, test_df, reference_name, test_name
         pearson_df = pd.DataFrame.from_dict(pearson_rs, orient="index", columns=["Pearson"])
         pearson_df.plot.bar(ax=summary_ax)
         summary_ax.set_ylim([-1, 1])
-        summary_ax.set_title(f"Correlazione tra {test_name} e {reference_name}")
+        summary_ax.set_title(f"Correlazione tra {reference_name} e {test_name}")
         for p in summary_ax.patches:
             h = p.get_height()
             if h > 0:
@@ -163,7 +163,7 @@ def similarity_common_variables(reference_df, test_df, reference_name, test_name
                 label_y = 0.05
             summary_ax.annotate(f"{p.get_height():.3f}", (p.get_x()+p.get_width()/2., label_y), ha="center")
         if save_graphs:
-            graph_directory = Path(f"similarity_graphs/{test_name}")
+            graph_directory = Path(f"similarity_graphs/{reference_name} v {test_name}")
             graph_directory.mkdir(parents=True, exist_ok=True)
             graph_filename = graph_directory.joinpath(f"summary.png")
             plt.savefig(graph_filename)
@@ -173,13 +173,13 @@ def similarity_common_variables(reference_df, test_df, reference_name, test_name
         nrmse_df = pd.DataFrame.from_dict(nrmses, orient="index", columns=["Pearson"])
         nrmse_df.plot.bar(ax=summary_ax)
         summary_ax.set_ylim([0, None])
-        summary_ax.set_title(f"RMSE normalizzato tra {test_name} e {reference_name}")
+        summary_ax.set_title(f"RMSE normalizzato tra {reference_name} e {test_name}")
         for p in summary_ax.patches:
             h = p.get_height()
             label_y = h + 0.05
             summary_ax.annotate(f"{p.get_height():.3f}", (p.get_x() + p.get_width() / 2., label_y), ha="center")
         if save_graphs:
-            graph_directory = Path(f"similarity_graphs/{test_name}")
+            graph_directory = Path(f"similarity_graphs/{reference_name} v {test_name}")
             graph_directory.mkdir(parents=True, exist_ok=True)
             graph_filename = graph_directory.joinpath(f"nrmse.png")
             plt.savefig(graph_filename)
@@ -207,21 +207,28 @@ def plot_common_variables(arpav_df, ibe_df, show=False):
 
 
 def main():
-    sensor_name = "SMART53"
-    ibe_df = read_IBE_sensor(f"{sensor_name}.json", f"{sensor_name}.params.json")
-    restricted_ibe_df = ibe_df[(ibe_df.index > f"2020-07-01") & (ibe_df.index < f"2020-07-27")]
+    from_date = "2020-07-01"
+    to_date = "2020-07-27"
+    smart53_df = read_IBE_sensor(f"SMART53.json", f"SMART53.params.json")
+    restricted_smart53_df = smart53_df[(smart53_df.index > from_date) & (smart53_df.index < to_date)]
+    smart54_df = read_IBE_sensor(f"SMART54.json", f"SMART54.params.json")
+    restricted_smart54_df = smart54_df[(smart54_df.index > from_date) & (smart54_df.index < to_date)]
 
     # remove outliers
-    for col in restricted_ibe_df:
-        print(restricted_ibe_df[col])
-        z_score = (restricted_ibe_df[col] - restricted_ibe_df[col].mean()) / restricted_ibe_df[col].std(ddof=0)
-        restricted_ibe_df[col][z_score >= 3] = np.nan
+    for col in restricted_smart53_df:
+        z_score = (restricted_smart53_df[col] - restricted_smart53_df[col].mean()) / restricted_smart53_df[col].std(ddof=0)
+        restricted_smart53_df[col][z_score >= 3] = np.nan
+    for col in restricted_smart54_df:
+        z_score = (restricted_smart54_df[col] - restricted_smart54_df[col].mean()) / restricted_smart54_df[col].std(ddof=0)
+        restricted_smart54_df[col][z_score >= 3] = np.nan
 
     arpav_df = read_ARPAV_station("MMC.csv")
-    restricted_arpav_df = arpav_df[(arpav_df.index > f"2020-07-01") & (arpav_df.index < f"2020-07-27")]
-    print(restricted_arpav_df)
-    # plot_common_variables(restricted_arpav_df, restricted_ibe_df, True)
-    similarity_common_variables(restricted_arpav_df, restricted_ibe_df, "ARPAV", sensor_name)
+    restricted_arpav_df = arpav_df[(arpav_df.index > from_date) & (arpav_df.index < to_date)]
+    # plot_common_variables(restricted_arpav_df, restricted_smart53_df, True)
+    similarity_common_variables(restricted_arpav_df, restricted_smart53_df, "ARPAV", "SMART53", show=False)
+    similarity_common_variables(restricted_arpav_df, restricted_smart54_df, "ARPAV", "SMART54", show=False)
+    similarity_common_variables(restricted_smart53_df, restricted_smart54_df, "SMART53", "SMART54", show=False,
+                                variables=["NO2", "O3", "CO", "T", "RH", "CO2", "PM10", "PM2.5"])
 
 
 if __name__ == '__main__':
