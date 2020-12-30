@@ -52,7 +52,7 @@ def read_ARPAV_station(data_filename):
 # Si passano due dataframe e l'elenco di colonne in comune
 # i due dataframe devono avere la stessa frequenza temporale
 # vedi df.resample()
-def similarity_common_variables(reference_df, test_df, reference_name, test_name, variables=None, window=24,
+def similarity_common_variables(reference_df, test_df, reference_name, test_name, variables=None, units=None, window=24,
                                 save_graphs=True, show=True, folder=None):
     def pearson(ser):
         try:
@@ -87,13 +87,14 @@ def similarity_common_variables(reference_df, test_df, reference_name, test_name
         except (KeyError, ValueError) as e:
             return np.nan
 
-    units = {
-        "NO2": "µg/m3",
-        "O3": "µg/m3",
-        "CO": "mg/m3",
-        "T": "C°",
-        "RH": "%"
-    }
+    if units is None:
+        units = {
+            "NO2": "µg/m3",
+            "O3": "µg/m3",
+            "CO": "mg/m3",
+            "T": "C°",
+            "RH": "%"
+        }
 
     if variables is None:
         variables = ["NO2", "O3", "CO", "T", "RH"]
@@ -146,7 +147,7 @@ def similarity_common_variables(reference_df, test_df, reference_name, test_name
             data_ax.set_title(f"Confronto tra {reference_name} e {test_name}")
             if v in units:
                 data_ax.set_ylabel(units[v])
-            data_ax.legend()
+            data_ax.legend(prop={'size': 6})
             plt.tight_layout()
             if save_graphs:
                 graph_directory = Path(f"{folder}/{reference_name} v {test_name}")
