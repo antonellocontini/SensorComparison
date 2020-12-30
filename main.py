@@ -147,7 +147,7 @@ def similarity_common_variables(reference_df, test_df, reference_name, test_name
                 graph_directory = Path(f"similarity_graphs/{reference_name} v {test_name}")
                 graph_directory.mkdir(parents=True, exist_ok=True)
                 graph_filename = graph_directory.joinpath(f"{v}.png")
-                plt.savefig(graph_filename)
+                plt.savefig(graph_filename, dpi=300)
 
     if len(pearson_rs) > 0:
         summary_f, summary_ax = plt.subplots()
@@ -166,23 +166,23 @@ def similarity_common_variables(reference_df, test_df, reference_name, test_name
             graph_directory = Path(f"similarity_graphs/{reference_name} v {test_name}")
             graph_directory.mkdir(parents=True, exist_ok=True)
             graph_filename = graph_directory.joinpath(f"summary.png")
-            plt.savefig(graph_filename)
+            plt.savefig(graph_filename, dpi=300)
 
     if len(nrmses) > 0:
-        summary_f, summary_ax = plt.subplots()
+        nrmse_f, nrmse_ax = plt.subplots()
         nrmse_df = pd.DataFrame.from_dict(nrmses, orient="index", columns=["Pearson"])
-        nrmse_df.plot.bar(ax=summary_ax)
-        summary_ax.set_ylim([0, None])
-        summary_ax.set_title(f"RMSE normalizzato tra {reference_name} e {test_name}")
-        for p in summary_ax.patches:
+        nrmse_df.plot.bar(ax=nrmse_ax)
+        nrmse_ax.set_ylim([0, None])
+        nrmse_ax.set_title(f"RMSE normalizzato tra {reference_name} e {test_name}")
+        for p in nrmse_ax.patches:
             h = p.get_height()
             label_y = h + 0.05
-            summary_ax.annotate(f"{p.get_height():.3f}", (p.get_x() + p.get_width() / 2., label_y), ha="center")
+            nrmse_ax.annotate(f"{p.get_height():.3f}", (p.get_x() + p.get_width() / 2., label_y), ha="center")
         if save_graphs:
             graph_directory = Path(f"similarity_graphs/{reference_name} v {test_name}")
             graph_directory.mkdir(parents=True, exist_ok=True)
             graph_filename = graph_directory.joinpath(f"nrmse.png")
-            plt.savefig(graph_filename)
+            plt.savefig(graph_filename, dpi=300)
 
     if show:
         plt.show()
