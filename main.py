@@ -22,9 +22,9 @@ def arpav_ibe_comparison():
     analysis.similarity_common_variables(restricted_arpav_df, restricted_smart54_df, "ARPAV", "SMART54", show=False)
 
 
-def ibe_monthly_analysis():
-    smart53_df = analysis.read_IBE_sensor(f"SMART53.json", f"SMART53.params.json")
-    smart54_df = analysis.read_IBE_sensor(f"SMART54.json", f"SMART54.params.json")
+def ibe_monthly_analysis(ibe_a_name, ibe_b_name):
+    a_df = analysis.read_IBE_sensor(f"{ibe_a_name}.json", f"{ibe_a_name}.params.json")
+    b_df = analysis.read_IBE_sensor(f"{ibe_b_name}.json", f"{ibe_b_name}.params.json")
     units = {
         "NO2": "µg/m3",
         "O3": "µg/m3",
@@ -45,14 +45,14 @@ def ibe_monthly_analysis():
     for month in range(7, 13, 2):
         from_date = pd.to_datetime(f"2020-{month:02}-01", utc=True)
         to_date = pd.to_datetime(f"2020-{month:02}-01", utc=True) + MonthEnd(2)
-        restricted_smart53_df = smart53_df[(smart53_df.index > from_date) & (smart53_df.index < to_date)]
-        restricted_smart54_df = smart54_df[(smart54_df.index > from_date) & (smart54_df.index < to_date)]
+        restricted_a_df = a_df[(a_df.index > from_date) & (a_df.index < to_date)]
+        restricted_b_df = b_df[(b_df.index > from_date) & (b_df.index < to_date)]
         for v in limits:
-            restricted_smart53_df[v][restricted_smart53_df[v] > limits[v]] = limits[v]
-            restricted_smart54_df[v][restricted_smart54_df[v] > limits[v]] = limits[v]
-        restricted_smart53_df = analysis.outlier_removal(restricted_smart53_df)
-        restricted_smart54_df = analysis.outlier_removal(restricted_smart54_df)
-        analysis.similarity_common_variables(restricted_smart53_df, restricted_smart54_df, "SMART53", "SMART54",
+            restricted_a_df[v][restricted_a_df[v] > limits[v]] = limits[v]
+            restricted_b_df[v][restricted_b_df[v] > limits[v]] = limits[v]
+        restricted_a_df = analysis.outlier_removal(restricted_a_df)
+        restricted_b_df = analysis.outlier_removal(restricted_b_df)
+        analysis.similarity_common_variables(restricted_a_df, restricted_b_df, ibe_a_name, ibe_b_name,
                                              show=False,
                                              variables=["NO2", "O3", "CO", "T", "RH", "CO2", "PM10", "PM2.5"],
                                              units=units,
@@ -85,5 +85,5 @@ def ibe_trend():
 
 
 if __name__ == '__main__':
-    # ibe_monthly_analysis()
-    ibe_trend()
+    ibe_monthly_analysis("SMART53", "SMART56")
+    # ibe_trend()

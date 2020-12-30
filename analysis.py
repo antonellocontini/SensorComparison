@@ -232,7 +232,7 @@ def bar_plot_resampled(df, freq, name=None, variables=None, show=False):
     ax.legend(prop={'size': 6})
     if freq == "MS" or freq == "M":
         ax.xaxis.set_major_formatter(ticker.FixedFormatter(copy_df.index.month_name()))
-    if freq == "W" or type(freq) is pd._libs.tslibs.offsets.Week:
+    if freq == "W" or type(freq) is pd.tseries.offsets.Week:
         ax.xaxis.set_major_formatter(
             ticker.FixedFormatter(copy_df.index.to_series().apply(lambda x: dt.datetime.strftime(x, "%d/%m"))))
     if name is not None:
