@@ -60,5 +60,12 @@ def ibe_monthly_analysis():
         plt.close("all")
 
 
+def ibe_trend():
+    smart53_df = analysis.read_IBE_sensor(f"SMART53.json", f"SMART53.params.json")
+    smart54_df = analysis.read_IBE_sensor(f"SMART54.json", f"SMART54.params.json")
+    analysis.bar_plot_resampled(smart53_df, "2W", show=True)
+
+
 if __name__ == '__main__':
-    ibe_monthly_analysis()
+    # ibe_monthly_analysis()
+    ibe_trend()

@@ -219,6 +219,17 @@ def outlier_removal(df):
     return df
 
 
+def bar_plot_resampled(df, freq, show=False):
+    copy_df = df.resample(freq).mean()
+    for col in copy_df:
+        f, ax = plt.subplots()
+        copy_df[col].plot.bar(ax=ax)
+        plt.tight_layout()
+
+    if show:
+        plt.show()
+
+
 def old_main():
     from_date = "2020-07-01"
     to_date = "2020-07-27"
