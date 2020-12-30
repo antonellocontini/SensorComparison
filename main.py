@@ -61,9 +61,27 @@ def ibe_monthly_analysis():
 
 
 def ibe_trend():
+    limits = {
+        "O3": 300,
+        "NO2": 300,
+        "CO": 30,
+        "PM2.5": 300,
+        "PM10": 300,
+        "CO2": 1000
+    }
     smart53_df = analysis.read_IBE_sensor(f"SMART53.json", f"SMART53.params.json")
     smart54_df = analysis.read_IBE_sensor(f"SMART54.json", f"SMART54.params.json")
-    analysis.bar_plot_resampled(smart53_df, "2W", show=True)
+    for v in limits:
+        smart53_df[v][smart53_df[v] > limits[v]] = limits[v]
+        smart54_df[v][smart54_df[v] > limits[v]] = limits[v]
+    smart53_df = analysis.outlier_removal(smart53_df)
+    smart54_df = analysis.outlier_removal(smart54_df)
+    freq = pd.offsets.Week(weekday=0, n=2)
+    # freq = "MS"
+    analysis.bar_plot_resampled(smart53_df, freq, show=False, name="SMART53",
+                                variables=["NO2", "O3", "CO", "T", "RH", "PM10", "PM2.5"])
+    analysis.bar_plot_resampled(smart53_df, freq, show=True, name="SMART53",
+                                variables=["CO2"])
 
 
 if __name__ == '__main__':

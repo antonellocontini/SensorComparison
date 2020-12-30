@@ -1,11 +1,13 @@
 import pandas as pd
 from pandas.tseries.offsets import MonthEnd
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import numpy as np
 import json
 from scipy import stats
 from sklearn.metrics import mean_squared_error
 from pathlib import Path
+import datetime as dt
 
 
 def convert_IBE_json_to_df(js, calibration_params):
@@ -219,12 +221,27 @@ def outlier_removal(df):
     return df
 
 
-def bar_plot_resampled(df, freq, show=False):
-    copy_df = df.resample(freq).mean()
-    for col in copy_df:
-        f, ax = plt.subplots()
-        copy_df[col].plot.bar(ax=ax)
-        plt.tight_layout()
+def bar_plot_resampled(df, freq, name=None, variables=None, show=False):
+    if variables is not None:
+        copy_df = df[variables].resample(freq).mean()
+    else:
+        copy_df = df.resample(freq).mean()
+
+    f, ax = plt.subplots()
+    copy_df.plot.bar(ax=ax)
+    ax.legend(prop={'size': 6})
+    if freq == "MS" or freq == "M":
+        ax.xaxis.set_major_formatter(ticker.FixedFormatter(copy_df.index.month_name()))
+    if freq == "W" or type(freq) is pd._libs.tslibs.offsets.Week:
+        ax.xaxis.set_major_formatter(
+            ticker.FixedFormatter(copy_df.index.to_series().apply(lambda x: dt.datetime.strftime(x, "%d/%m"))))
+    if name is not None:
+        ax.set_title(name)
+    plt.tight_layout()
+    # for col in copy_df:
+    #     f, ax = plt.subplots()
+    #     copy_df[col].plot.bar(ax=ax)
+    #     plt.tight_layout()
 
     if show:
         plt.show()
