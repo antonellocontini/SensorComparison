@@ -78,6 +78,11 @@ def read_ARPAV_station(data_filename):
 # Si passano due dataframe e l'elenco di colonne in comune
 # i due dataframe devono avere la stessa frequenza temporale
 # vedi df.resample()
+# la funzione calcola R e RMSE per ogni variabile, sia complessivamente
+# che in moving window
+# di default plotta sia su schermo che su file
+# ritorna un array [mov_r, mov_rmse, r, rmse]
+# ogni elemento è un dataframe con le statistiche per ogni variabile
 def similarity_common_variables(reference_df, test_df, reference_name, test_name, variables=None, units=None, window=24,
                                 save_graphs=True, show=True, folder=None):
     def pearson(ser):
@@ -130,6 +135,9 @@ def similarity_common_variables(reference_df, test_df, reference_name, test_name
 
     pearson_rs = {}
     nrmses = {}
+    rmses = {}
+    mov_pearsons = []
+    mov_rmses = []
     for v in variables:
         if v in reference_df and v in test_df:
             ref_v_name = f"REFERENCE {v}"
@@ -142,7 +150,10 @@ def similarity_common_variables(reference_df, test_df, reference_name, test_name
             print(v)
             rol = reference_df[v].rolling(window=window)
 
-            rol.apply(pearson, raw=False).plot(ax=pearson_ax)
+            v_pearson_ser = rol.apply(pearson, raw=False)
+            v_pearson_ser.rename(v, inplace=True)
+            mov_pearsons.append(v_pearson_ser)
+            v_pearson_ser.plot(ax=pearson_ax)
             overall_r, overall_p = stats.pearsonr(unique_df[ref_v_name], unique_df[test_v_name])
             overall_r = overall_r
             pearson_rs[v] = overall_r
@@ -151,10 +162,13 @@ def similarity_common_variables(reference_df, test_df, reference_name, test_name
             pearson_ax.set_title(f"{v} - Moving window pearson R - R complessivo: {overall_r:.3f}")
 
             rmse_ser = rol.apply(rmse, raw=False)
+            rmse_ser.rename(v, inplace=True)
+            mov_rmses.append(rmse_ser)
             # rmse_avg = rmse_ser.mean()
             overall_rmse = mean_squared_error(unique_df[ref_v_name], unique_df[test_v_name], squared=False)
             if unique_df[ref_v_name].max() - unique_df[ref_v_name].min() > 0:
                 nrmses[v] = overall_rmse / (unique_df[ref_v_name].max() - unique_df[ref_v_name].min())
+                rmses[v] = overall_rmse
             rmse_ser.plot(ax=rmse_ax)
             rmse_ax.axhline(overall_rmse, color="red", linestyle="--")
             rmse_ax.set_title(f"{v} - Moving window RMSE - RMSE complessivo: {overall_rmse:.3f}")
@@ -199,10 +213,12 @@ def similarity_common_variables(reference_df, test_df, reference_name, test_name
             graph_directory.mkdir(parents=True, exist_ok=True)
             graph_filename = graph_directory.joinpath(f"summary.png")
             plt.savefig(graph_filename, dpi=300)
+    else:
+        pearson_df = None
 
     if len(nrmses) > 0:
         nrmse_f, nrmse_ax = plt.subplots()
-        nrmse_df = pd.DataFrame.from_dict(nrmses, orient="index", columns=["Pearson"])
+        nrmse_df = pd.DataFrame.from_dict(nrmses, orient="index", columns=["NRMSE"])
         nrmse_df.plot.bar(ax=nrmse_ax)
         nrmse_ax.set_ylim([0, None])
         nrmse_ax.set_title(f"RMSE normalizzato tra {reference_name} e {test_name}")
@@ -216,8 +232,25 @@ def similarity_common_variables(reference_df, test_df, reference_name, test_name
             graph_filename = graph_directory.joinpath(f"nrmse.png")
             plt.savefig(graph_filename, dpi=300)
 
+    if len(rmses) > 0:
+        rmse_df = pd.DataFrame.from_dict(rmses, orient="index", columns=["RMSE"])
+    else:
+        rmse_df = None
+
+    if len(mov_rmses) > 0:
+        mov_rmse_df = pd.concat(mov_rmses, axis=1)
+    else:
+        mov_rmse_df = None
+
+    if len(mov_pearsons) > 0:
+        mov_pearsons_df = pd.concat(mov_pearsons, axis=1)
+    else:
+        mov_pearsons_df = None
+
     if show:
         plt.show()
+
+    return [mov_pearsons_df, mov_rmse_df, pearson_df, rmse_df]
 
 
 def plot_common_variables(arpav_df, ibe_df, show=False):
