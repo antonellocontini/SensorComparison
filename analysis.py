@@ -10,6 +10,13 @@ from pathlib import Path
 import datetime as dt
 
 
+def outlier_removal(df):
+    for col in df:
+        z_score = (df[col] - df[col].mean()) / df[col].std(ddof=0)
+        df[col][z_score >= 3] = np.nan
+    return df
+
+
 def convert_IBE_json_to_df(js, calibration_params):
     df = pd.DataFrame.from_dict(js["data"])
     columns = ['y_coord', 'RH', 'PM10', 'CO2', 'PM2.5', 'x_coord', 'O3', 'VOC',
@@ -37,6 +44,24 @@ def read_IBE_sensor(data_filename, params_filename):
     return df
 
 
+# rimuove i valori che superano i limiti massimi rilevabili
+# dai sensori IBE
+def clip_IBE_data(df, limits=None):
+    copy_df = df.copy()
+    if limits is None:
+        limits = {
+            "O3": 300,
+            "NO2": 300,
+            "CO": 30,
+            "PM2.5": 300,
+            "PM10": 300,
+            "CO2": 1000
+        }
+    for v in limits:
+        copy_df[v][copy_df[v] > limits[v]] = limits[v]
+    return copy_df
+
+
 def read_ARPAV_station(data_filename):
     df = pd.read_csv(data_filename)
     # df["Datetime"] = pd.to_datetime(df["Datetime"], format="%d/%m/%Y %H", utc=True)
@@ -50,7 +75,6 @@ def read_ARPAV_station(data_filename):
     return df
 
 
-# Confronto arpav con ibe
 # Si passano due dataframe e l'elenco di colonne in comune
 # i due dataframe devono avere la stessa frequenza temporale
 # vedi df.resample()
@@ -212,13 +236,6 @@ def plot_common_variables(arpav_df, ibe_df, show=False):
         i = i + 1
     if show:
         plt.show()
-
-
-def outlier_removal(df):
-    for col in df:
-        z_score = (df[col] - df[col].mean()) / df[col].std(ddof=0)
-        df[col][z_score >= 3] = np.nan
-    return df
 
 
 def bar_plot_resampled(df, freq, name=None, variables=None, show=False):

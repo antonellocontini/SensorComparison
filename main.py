@@ -34,22 +34,13 @@ def ibe_monthly_analysis(ibe_a_name, ibe_b_name):
         "PM10": "µg/m3",
         "PM2.5": "µg/m3"
     }
-    limits = {
-        "O3": 300,
-        "NO2": 300,
-        "CO": 30,
-        "PM2.5": 300,
-        "PM10": 300,
-        "CO2": 1000
-    }
     for month in range(7, 13, 2):
         from_date = pd.to_datetime(f"2020-{month:02}-01", utc=True)
         to_date = pd.to_datetime(f"2020-{month:02}-01", utc=True) + MonthEnd(2)
         restricted_a_df = a_df[(a_df.index > from_date) & (a_df.index < to_date)]
         restricted_b_df = b_df[(b_df.index > from_date) & (b_df.index < to_date)]
-        for v in limits:
-            restricted_a_df[v][restricted_a_df[v] > limits[v]] = limits[v]
-            restricted_b_df[v][restricted_b_df[v] > limits[v]] = limits[v]
+        restricted_a_df = analysis.clip_IBE_data(restricted_a_df)
+        restricted_b_df = analysis.clip_IBE_data(restricted_b_df)
         restricted_a_df = analysis.outlier_removal(restricted_a_df)
         restricted_b_df = analysis.outlier_removal(restricted_b_df)
         analysis.similarity_common_variables(restricted_a_df, restricted_b_df, ibe_a_name, ibe_b_name,
@@ -71,10 +62,9 @@ def ibe_trend():
     }
     smart53_df = analysis.read_IBE_sensor(f"SMART53.json", f"SMART53.params.json")
     smart54_df = analysis.read_IBE_sensor(f"SMART54.json", f"SMART54.params.json")
-    for v in limits:
-        smart53_df[v][smart53_df[v] > limits[v]] = limits[v]
-        smart54_df[v][smart54_df[v] > limits[v]] = limits[v]
+    smart53_df = analysis.clip_IBE_data(smart53_df)
     smart53_df = analysis.outlier_removal(smart53_df)
+    smart54_df = analysis.clip_IBE_data(smart54_df)
     smart54_df = analysis.outlier_removal(smart54_df)
     freq = pd.offsets.Week(weekday=0, n=2)
     # freq = "MS"
