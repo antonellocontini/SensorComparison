@@ -81,7 +81,7 @@ def read_ARPAV_station(data_filename):
 # la funzione calcola R e RMSE per ogni variabile, sia complessivamente
 # che in moving window
 # di default plotta sia su schermo che su file
-# ritorna un array [mov_r, mov_rmse, r, rmse]
+# ritorna un array [mov_r, mov_rmse, r, rmse, nrmse]
 # ogni elemento è un dataframe con le statistiche per ogni variabile
 def similarity_common_variables(reference_df, test_df, reference_name, test_name, variables=None, units=None, window=24,
                                 save_graphs=True, show=True, folder=None):
@@ -231,6 +231,8 @@ def similarity_common_variables(reference_df, test_df, reference_name, test_name
             graph_directory.mkdir(parents=True, exist_ok=True)
             graph_filename = graph_directory.joinpath(f"nrmse.png")
             plt.savefig(graph_filename, dpi=300)
+    else:
+        nrmse_df = None
 
     if len(rmses) > 0:
         rmse_df = pd.DataFrame.from_dict(rmses, orient="index", columns=["RMSE"])
@@ -250,7 +252,7 @@ def similarity_common_variables(reference_df, test_df, reference_name, test_name
     if show:
         plt.show()
 
-    return [mov_pearsons_df, mov_rmse_df, pearson_df, rmse_df]
+    return [mov_pearsons_df, mov_rmse_df, pearson_df, rmse_df, nrmse_df]
 
 
 def plot_common_variables(arpav_df, ibe_df, show=False):
