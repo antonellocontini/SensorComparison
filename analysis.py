@@ -3,75 +3,19 @@ from pandas.tseries.offsets import MonthEnd
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
-import json
 from scipy import stats
 from sklearn.metrics import mean_squared_error
 from pathlib import Path
 import datetime as dt
+
+import arpav
+from ibe import read_IBE_sensor
 
 
 def outlier_removal(df):
     for col in df:
         z_score = (df[col] - df[col].mean()) / df[col].std(ddof=0)
         df[col][z_score >= 3] = np.nan
-    return df
-
-
-def convert_IBE_json_to_df(js, calibration_params):
-    df = pd.DataFrame.from_dict(js["data"])
-    columns = ['y_coord', 'RH', 'PM10', 'CO2', 'PM2.5', 'x_coord', 'O3', 'VOC',
-               'NO_A', 'T', 'NO2', 'CO', 'NO2_A']
-    for c in columns:
-        df[c] = df[c].astype("float64")
-    for v in calibration_params:
-        params = calibration_params[v]
-        df[v] = params["a"] * df[v] + \
-                params["b"] * df["T"] + \
-                params["c"] * df[v] * df["T"] + \
-                params["q"]
-    df["data"] = pd.to_datetime(df["data"], utc=True)
-    df.set_index("data", inplace=True)
-    return df
-
-
-def read_IBE_sensor(data_filename, params_filename):
-    with open(params_filename) as f:
-        calibration_params = json.load(f)
-    with open(data_filename) as f:
-        js = json.load(f)
-    df = convert_IBE_json_to_df(js, calibration_params)
-    df = df.resample("H").mean()
-    return df
-
-
-# rimuove i valori che superano i limiti massimi rilevabili
-# dai sensori IBE
-def clip_IBE_data(df, limits=None):
-    copy_df = df.copy()
-    if limits is None:
-        limits = {
-            "O3": 300,
-            "NO2": 300,
-            "CO": 30,
-            "PM2.5": 300,
-            "PM10": 300,
-            "CO2": 1000
-        }
-    for v in limits:
-        copy_df[v][copy_df[v] > limits[v]] = limits[v]
-    return copy_df
-
-
-def read_ARPAV_station(data_filename):
-    df = pd.read_csv(data_filename)
-    # df["Datetime"] = pd.to_datetime(df["Datetime"], format="%d/%m/%Y %H", utc=True)
-
-    # leggo timestamp in UTC+2 (CEST) e converto in UTC
-    # N.B. faccio questo perchè c'è un bug nel plot delle timeseries dove la timezone
-    # non viene considerata
-    tz_naive = pd.to_datetime(df["Datetime"], format="%d/%m/%Y %H")
-    df["Datetime"] = tz_naive.dt.tz_localize(tz="Europe/Rome").dt.tz_convert(tz="UTC")
-    df.set_index("Datetime", inplace=True)
     return df
 
 
@@ -311,7 +255,7 @@ def old_main():
     restricted_smart53_df = outlier_removal(restricted_smart53_df)
     restricted_smart54_df = outlier_removal(restricted_smart54_df)
 
-    arpav_df = read_ARPAV_station("MMC.csv")
+    arpav_df = arpav.read_ARPAV_station("MMC.csv")
     restricted_arpav_df = arpav_df[(arpav_df.index > from_date) & (arpav_df.index < to_date)]
     # plot_common_variables(restricted_arpav_df, restricted_smart53_df, True)
     # similarity_common_variables(restricted_arpav_df, restricted_smart53_df, "ARPAV", "SMART53", show=False)
