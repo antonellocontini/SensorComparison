@@ -41,6 +41,15 @@ def arpav_ibe_comparison():
                    arpav_54_similarity[i].rename(columns={f"{title}": "ARPAV v SMART54"}),
                    ibe_similarity[i].rename(columns={f"{title}": "SMART53 v SMART54"})], axis=1).plot.bar(ax=ax)
         ax.set_title(title)
+        ax_range = ax.get_ylim()
+        ax_range = ax_range[1] - ax_range[0]
+        for p in ax.patches:
+            h = p.get_height()
+            if h > 0:
+                label_y = h + ax_range * 0.02
+            else:
+                label_y = h - ax_range * 0.02
+            ax.annotate(f"{p.get_height():.2f}", (p.get_x() + p.get_width() / 2., label_y), ha="center", va="center", fontsize=4)
         plt.tight_layout()
         graph_filename = graph_directory.joinpath(f"{title} - ARPAV v IBE.png")
         plt.savefig(graph_filename, dpi=300)
