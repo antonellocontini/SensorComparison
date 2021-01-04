@@ -2,9 +2,11 @@ import analysis
 import pandas as pd
 from pandas.tseries.offsets import MonthEnd
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 
 def arpav_ibe_comparison():
+    folder = "similarity_graphs"
     from_date = "2020-07-01"
     to_date = "2020-07-27"
     smart53_df = analysis.read_IBE_sensor(f"SMART53.json", f"SMART53.params.json")
@@ -18,8 +20,62 @@ def arpav_ibe_comparison():
 
     arpav_df = analysis.read_ARPAV_station("MMC.csv")
     restricted_arpav_df = arpav_df[(arpav_df.index > from_date) & (arpav_df.index < to_date)]
-    analysis.similarity_common_variables(restricted_arpav_df, restricted_smart53_df, "ARPAV", "SMART53", show=False)
-    analysis.similarity_common_variables(restricted_arpav_df, restricted_smart54_df, "ARPAV", "SMART54", show=False)
+    arpav_53_similarity = analysis.similarity_common_variables(restricted_arpav_df, restricted_smart53_df, "ARPAV",
+                                                               "SMART53", show=False, folder=folder)
+    arpav_54_similarity = analysis.similarity_common_variables(restricted_arpav_df, restricted_smart54_df, "ARPAV",
+                                                               "SMART54", show=False, folder=folder)
+    ibe_similarity = analysis.similarity_common_variables(restricted_smart53_df, restricted_smart54_df, "SMART53",
+                                                          "SMART54", show=False, folder=folder)
+    plt.close("all")
+    # for column in arpav_53_similarity[0]:
+    #     f, ax = plt.subplots()
+    #     ax.plot(arpav_53_similarity[0][column], label=f"ARPAV v SMART53")
+    #     ax.plot(arpav_54_similarity[0][column], label=f"ARPAV v SMART54")
+    #     ax.plot(ibe_similarity[0][column], label=f"SMART53 v SMART54")
+    #     ax.set_title(f"Pearson {column}")
+    #     ax.legend()
+    # plt.show()
+
+    # for column in arpav_53_similarity[1]:
+    #     f, ax = plt.subplots()
+    #     ax.plot(arpav_53_similarity[1][column], label=f"ARPAV v SMART53")
+    #     ax.plot(arpav_54_similarity[1][column], label=f"ARPAV v SMART54")
+    #     ax.plot(ibe_similarity[1][column], label=f"SMART53 v SMART54")
+    #     ax.set_title(f"RMSE {column}")
+    #     ax.legend()
+    # plt.tight_layout()
+    # plt.show()
+
+    graph_directory = Path(folder)
+    graph_directory.mkdir(parents=True, exist_ok=True)
+    plt.close("all")
+    f, ax = plt.subplots()
+    pd.concat([arpav_53_similarity[4].rename(columns={"NRMSE": "ARPAV v SMART53"}), arpav_54_similarity[4].rename(columns={"NRMSE": "ARPAV v SMART54"}),
+               ibe_similarity[4].rename(columns={"NRMSE": "SMART53 v SMART54"})], axis=1).plot.bar(ax=ax)
+    ax.set_title("NRMSE")
+    plt.tight_layout()
+    graph_filename = graph_directory.join("NRMSE - ARPAV v IBE.png")
+    plt.savefig(graph_filename, dpi=300)
+
+    plt.close("all")
+    f, ax = plt.subplots()
+    pd.concat([arpav_53_similarity[3].rename(columns={"RMSE": "ARPAV v SMART53"}),
+               arpav_54_similarity[3].rename(columns={"RMSE": "ARPAV v SMART54"}),
+               ibe_similarity[3].rename(columns={"RMSE": "SMART53 v SMART54"})], axis=1).plot.bar(ax=ax)
+    ax.set_title("RMSE")
+    plt.tight_layout()
+    graph_filename = graph_directory.join("RMSE - ARPAV v IBE.png")
+    plt.savefig(graph_filename, dpi=300)
+
+    plt.close("all")
+    f, ax = plt.subplots()
+    pd.concat([arpav_53_similarity[2].rename(columns={"Pearson": "ARPAV v SMART53"}),
+               arpav_54_similarity[2].rename(columns={"Pearson": "ARPAV v SMART54"}),
+               ibe_similarity[2].rename(columns={"Pearson": "SMART53 v SMART54"})], axis=1).plot.bar(ax=ax)
+    ax.set_title("Pearson")
+    plt.tight_layout()
+    graph_filename = graph_directory.join("Pearson - ARPAV v IBE.png")
+    plt.savefig(graph_filename, dpi=300)
 
 
 def ibe_monthly_analysis(ibe_a_name, ibe_b_name):
@@ -100,8 +156,20 @@ def ibe_plot_difference(ibe_a_name, ibe_b_name, variables=None, units=None, from
     if to_date is not None:
         ibe_a_df = ibe_a_df[ibe_a_df.index <= to_date]
         ibe_b_df = ibe_b_df[ibe_b_df.index <= to_date]
+    if ibe_a_df.empty:
+        print(f"There is no data for {ibe_a_name} in the selected period")
+        return
+    if ibe_b_df.empty:
+        print(f"There is no data for {ibe_b_name} in the selected period")
+        return
     ibe_a_df = analysis.outlier_removal(analysis.clip_IBE_data(ibe_a_df))
     ibe_b_df = analysis.outlier_removal(analysis.clip_IBE_data(ibe_b_df))
+    if ibe_a_df.empty:
+        print(f"There is no data for {ibe_a_name} after outlier remotion")
+        return
+    if ibe_b_df.empty:
+        print(f"There is no data for {ibe_b_name} after outlier remotion")
+        return
 
     if variables is None:
         variables = ["CO2", "PM10", "PM2.5"]
@@ -134,4 +202,5 @@ if __name__ == '__main__':
     # arpav_ibe_comparison()
     # ibe_monthly_analysis("SMART53", "SMART56")
     # ibe_trend()
-    ibe_plot_difference("SMART53", "SMART55", from_date="2020-12-01")
+    ibe_plot_difference("SMART53", "SMART55", from_date="2020-08-01", to_date="2020-08-31")
+    # ibe_plot_difference("SMART53", "SMART55", from_date="2020-12-01")
