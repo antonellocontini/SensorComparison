@@ -23,10 +23,19 @@ def outlier_removal(df):
 # i due dataframe devono avere la stessa frequenza temporale
 # vedi df.resample()
 # la funzione calcola R e RMSE per ogni variabile, sia complessivamente
-# che in moving window
-# di default plotta sia su schermo che su file
-# ritorna un array [mov_r, mov_rmse, r, rmse, nrmse]
-# ogni elemento è un dataframe con le statistiche per ogni variabile
+# che in moving window.
+# Il parametro variables accetta una lista di stringhe con i nomi dei parametri
+# da analizzare, questi nomi devono essere presenti nelle colonne dei due dataframe
+# passati in input.
+# Di default plotta sia su schermo che su file,
+# con il parametro folder è possibile specificare la cartella nella quale
+# salvare i plot.
+# Ritorna un array [mov_r, mov_rmse, r, rmse, nrmse]
+# Ogni elemento è un dataframe con le statistiche per ogni variabile
+# mov_r e mov_rmse contengono una colonna per variabile con la statistica
+# calcolata in moving window.
+# r, rmse e nrmse sono composti di una sola colonna, una riga per variabile
+# e ogni valore corrisponde al valore della statistica per quella variabile.
 def similarity_common_variables(reference_df, test_df, reference_name, test_name, variables=None, units=None, window=24,
                                 save_graphs=True, show=True, folder=None):
     def pearson(ser):
@@ -217,6 +226,10 @@ def plot_common_variables(arpav_df, ibe_df, show=False):
         plt.show()
 
 
+# Visualizza il dataframe dato in input come grafico a barre,
+# dopo aver ricampionato alla frequenza specificata
+# Si può specificare un sottoinsieme delle colonne del dataframe
+# passando nel parametro variables una lista di stringhe
 def bar_plot_resampled(df, freq, name=None, variables=None, show=False):
     if variables is not None:
         copy_df = df[variables].resample(freq).mean()

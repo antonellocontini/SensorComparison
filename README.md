@@ -1,3 +1,9 @@
+# SensorComparison
+
+Mini-libreria per l'analisi e il confronto dei dati provenienti dai sensori
+IBE e ARPAV.
+Usa le librerie Pandas, scipy, scikit-learn e matplotlib su Python 3.8
+
 ## Dati presenti
 Sono presenti sia i dati della centralina mobile ARPAV
 che i dati dei sensori IBE.
