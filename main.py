@@ -32,7 +32,8 @@ def ibe_monthly_analysis(ibe_a_name, ibe_b_name):
         "T": "C°",
         "RH": "%",
         "PM10": "µg/m3",
-        "PM2.5": "µg/m3"
+        "PM2.5": "µg/m3",
+        "CO2": "ppm"
     }
     for month in range(7, 13, 2):
         from_date = pd.to_datetime(f"2020-{month:02}-01", utc=True)
@@ -74,6 +75,63 @@ def ibe_trend():
                                 variables=["CO2"])
 
 
+# plotta il grafico delle differenze tra due sensori IBIMET
+# è possibile indicare le variabili da plottare come lista di stringhe
+# e le loro unità di misura come dizionario
+# è possibile anche limitare il periodo di analisi dei dati passando
+# a from_date e to_date delle stringhe in formato "AAAA-MM-GG"
+def ibe_plot_difference(ibe_a_name, ibe_b_name, variables=None, units=None, from_date=None, to_date=None):
+    if units is None:
+        units = {
+            "NO2": "µg/m3",
+            "O3": "µg/m3",
+            "CO": "mg/m3",
+            "T": "C°",
+            "RH": "%",
+            "PM10": "µg/m3",
+            "PM2.5": "µg/m3",
+            "CO2": "ppm"
+        }
+    ibe_a_df = analysis.read_IBE_sensor(f"{ibe_a_name}.json", f"{ibe_a_name}.params.json")
+    ibe_b_df = analysis.read_IBE_sensor(f"{ibe_b_name}.json", f"{ibe_b_name}.params.json")
+    if from_date is not None:
+        ibe_a_df = ibe_a_df[ibe_a_df.index >= from_date]
+        ibe_b_df = ibe_b_df[ibe_b_df.index >= from_date]
+    if to_date is not None:
+        ibe_a_df = ibe_a_df[ibe_a_df.index <= to_date]
+        ibe_b_df = ibe_b_df[ibe_b_df.index <= to_date]
+    ibe_a_df = analysis.outlier_removal(analysis.clip_IBE_data(ibe_a_df))
+    ibe_b_df = analysis.outlier_removal(analysis.clip_IBE_data(ibe_b_df))
+
+    if variables is None:
+        variables = ["CO2", "PM10", "PM2.5"]
+    f, ax = plt.subplots(nrows=3, sharex=True)
+    f2, ax2 = plt.subplots(nrows=3, sharex=True)
+    i = 0
+    for v in variables:
+        diff = ibe_a_df[v] - ibe_b_df[v]
+        diff.plot(ax=ax[i], linewidth="0.9")
+        ax[i].set_title(f"Differenza tra {ibe_a_name} e {ibe_b_name} - {v}")
+        if v in units:
+            ax[i].set_ylabel(units[v])
+        abs_max = diff.abs().max()
+        ax[i].set_ylim((-abs_max*1.1, abs_max*1.1))
+        ax[i].axhline(0, color="red", linestyle="--", linewidth="0.7")
+        plt.tight_layout()
+
+        ibe_a_df[v].plot(ax=ax2[i], linewidth="0.9", label=ibe_a_name)
+        ibe_b_df[v].plot(ax=ax2[i], linewidth="0.9", label=ibe_b_name)
+        ax2[i].set_title(v)
+        if v in units:
+            ax2[i].set_ylabel(units[v])
+        ax2[i].legend(prop={'size': 6})
+        plt.tight_layout()
+        i = i + 1
+    plt.show()
+
+
 if __name__ == '__main__':
-    ibe_monthly_analysis("SMART53", "SMART56")
+    # arpav_ibe_comparison()
+    # ibe_monthly_analysis("SMART53", "SMART56")
     # ibe_trend()
+    ibe_plot_difference("SMART53", "SMART55", from_date="2020-12-01")
