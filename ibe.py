@@ -45,4 +45,5 @@ def clip_IBE_data(df, limits=None):
         }
     for v in limits:
         copy_df[v][copy_df[v] > limits[v]] = limits[v]
+        copy_df[v][copy_df[v] < 0.0] = 0.0
     return copy_df

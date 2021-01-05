@@ -17,6 +17,9 @@ def arpav_ibe_comparison():
     smart54_df = ibe.read_IBE_sensor(f"SMART54.json", f"SMART54.params.json")
     restricted_smart54_df = smart54_df[(smart54_df.index > from_date) & (smart54_df.index < to_date)]
 
+    # clip IBE data
+    restricted_smart53_df = ibe.clip_IBE_data(restricted_smart53_df)
+    restricted_smart54_df = ibe.clip_IBE_data(restricted_smart54_df)
     # remove outliers
     restricted_smart53_df = analysis.outlier_removal(restricted_smart53_df)
     restricted_smart54_df = analysis.outlier_removal(restricted_smart54_df)
