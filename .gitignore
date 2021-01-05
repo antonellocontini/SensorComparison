@@ -1,4 +1,5 @@
 .idea
 similarity_graphs/
 missing_periods/
+missing_periods_old/
 *.png

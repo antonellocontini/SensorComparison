@@ -4,7 +4,7 @@ import pandas as pd
 
 
 def main(sensor_name):
-    ibe_df = ibe.read_IBE_sensor(f"{sensor_name}.json", f"{sensor_name}.params.json")
+    ibe_df = ibe.read_IBE_sensor(f"{sensor_name}_extended.json", f"{sensor_name}.params.json")
     # ibe_df = ibe_df[ibe_df.index < "2020-08-01"]
     ser = ibe_df.dropna().index.to_series()
     d = ser.diff() > pd.Timedelta(1, "H")
