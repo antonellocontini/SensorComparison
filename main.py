@@ -11,7 +11,7 @@ import ibe
 def arpav_ibe_comparison():
     folder = "similarity_graphs"
     from_date = "2020-07-01"
-    to_date = "2020-07-27"
+    to_date = "2020-07-26"
     smart53_df = ibe.read_IBE_sensor(f"SMART53.json", f"SMART53.params.json")
     restricted_smart53_df = smart53_df[(smart53_df.index > from_date) & (smart53_df.index < to_date)]
     smart54_df = ibe.read_IBE_sensor(f"SMART54.json", f"SMART54.params.json")
