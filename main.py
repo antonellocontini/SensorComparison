@@ -37,7 +37,7 @@ def arpav_ibe_comparison():
     graph_directory.mkdir(parents=True, exist_ok=True)
     plt.close("all")
 
-    titles = ["Pearson", "RMSE", "NRMSE"]
+    titles = ["Pearson", "RMSE"]
     for i, title in enumerate(titles):
         f, ax = plt.subplots()
         pd.concat([arpav_53_similarity[i].rename(columns={f"{title}": "ARPAV v SMART53"}),
@@ -53,6 +53,7 @@ def arpav_ibe_comparison():
             else:
                 label_y = h - ax_range * 0.02
             ax.annotate(f"{p.get_height():.2f}", (p.get_x() + p.get_width() / 2., label_y), ha="center", va="center", fontsize=4)
+        ax.legend(prop={'size': 6})
         plt.tight_layout()
         graph_filename = graph_directory.joinpath(f"{title} - ARPAV v IBE.png")
         plt.savefig(graph_filename, dpi=300)
