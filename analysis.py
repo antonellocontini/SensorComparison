@@ -100,7 +100,7 @@ def similarity_common_variables(reference_df, test_df, reference_name, test_name
             pearson_ax = ax[0]
             rmse_ax = ax[1]
             data_ax = ax[2]
-            print(v)
+            # print(v)
             rol = reference_df[v].rolling(window=window)
 
             v_pearson_ser = rol.apply(pearson, raw=False)
