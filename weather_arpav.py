@@ -36,8 +36,8 @@ def compute_pollutant_dispersion(rain_df, wind_df):
     # merge two dfs
     merge_df = pd.merge(rain_df, wind_df, how="inner", left_index=True, right_index=True)
     merge_df["Dispersion"] = "NA"
-    merge_df["Dispersion"][(merge_df["Precipitation"] < 1) | (merge_df["Wind"] < 1.5)] = "LOW"
-    merge_df["Dispersion"][((merge_df["Precipitation"] >= 1) & (merge_df["Precipitation"] <= 6)) |
-                           ((merge_df["Wind"] >= 1.5) & (merge_df["Wind"] <= 3))] = "MEDIUM"
-    merge_df["Dispersion"][(merge_df["Precipitation"] > 6) | (merge_df["Wind"] > 3)] = "HIGH"
+    merge_df.loc[(merge_df["Precipitation"] < 1) | (merge_df["Wind"] < 1.5), "Dispersion"] = "LOW"
+    merge_df.loc[((merge_df["Precipitation"] >= 1) & (merge_df["Precipitation"] <= 6)) | (
+                (merge_df["Wind"] >= 1.5) & (merge_df["Wind"] <= 3)), "Dispersion"] = "MEDIUM"
+    merge_df.loc[(merge_df["Precipitation"] > 6) | (merge_df["Wind"] > 3), "Dispersion"] = "HIGH"
     return merge_df
