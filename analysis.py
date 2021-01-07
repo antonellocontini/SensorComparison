@@ -19,6 +19,20 @@ def outlier_removal(df):
     return df
 
 
+def plot_pollutant_dispersion(weather_df, ax=None, plot_low=True, plot_medium=True, plot_high=True, show=False):
+    if ax is None:
+        _, ax = plt.subplots()
+    for index, row in weather_df.iterrows():
+        if row["Dispersion"] == "LOW" and plot_low:
+            ax.axvspan(index, index + pd.Timedelta(days=1), color="mistyrose")
+        elif row["Dispersion"] == "MEDIUM" and plot_medium:
+            ax.axvspan(index, index + pd.Timedelta(days=1), color="lightyellow")
+        elif row["Dispersion"] == "HIGH" and plot_high:
+            ax.axvspan(index, index + pd.Timedelta(days=1), color="honeydew")
+    if show:
+        plt.show()
+
+
 # Si passano due dataframe e l'elenco di colonne in comune
 # i due dataframe devono avere la stessa frequenza temporale
 # vedi df.resample()
@@ -37,7 +51,7 @@ def outlier_removal(df):
 # r, rmse e nrmse sono composti di una sola colonna, una riga per variabile
 # e ogni valore corrisponde al valore della statistica per quella variabile.
 def similarity_common_variables(reference_df, test_df, reference_name, test_name, variables=None, units=None, window=24,
-                                save_graphs=True, show=True, folder=None):
+                                save_graphs=True, show=True, folder=None, weather_df=None):
     def pearson(ser):
         try:
             reference_ser = reference_df[v][ser.index].dropna()
@@ -137,6 +151,8 @@ def similarity_common_variables(reference_df, test_df, reference_name, test_name
 
             reference_df[v].plot(ax=data_ax, label=f"{reference_name} {v}")
             test_df[v].plot(ax=data_ax, label=f"{test_name} {v}")
+            if weather_df is not None:
+                plot_pollutant_dispersion(weather_df, ax=data_ax)
             data_ax.set_title(f"Confronto tra {reference_name} e {test_name}")
             if v in units:
                 data_ax.set_ylabel(units[v])

@@ -5,13 +5,18 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 
 import arpav
+import weather_arpav
 import ibe
 
 
 def arpav_ibe_comparison():
+    rain_df = weather_arpav.read_rain_ARPAV_station("ARPAV_BARDOLINO/precipitazioni.csv")
+    wind_df = weather_arpav.read_wind_ARPAV_station("ARPAV_BARDOLINO/vel_vento.csv")
+    weather_df = weather_arpav.compute_pollutant_dispersion(rain_df, wind_df)
     folder = "similarity_graphs"
     from_date = "2020-07-01"
     to_date = "2020-07-26"
+    restricted_weather_df = weather_df[(weather_df.index >= from_date) & (weather_df.index <= to_date)]
     smart53_df = ibe.read_IBE_sensor(f"SMART53.json", f"SMART53.params.json")
     restricted_smart53_df = smart53_df[(smart53_df.index > from_date) & (smart53_df.index < to_date)]
     smart54_df = ibe.read_IBE_sensor(f"SMART54.json", f"SMART54.params.json")
@@ -27,11 +32,14 @@ def arpav_ibe_comparison():
     arpav_df = arpav.read_ARPAV_station("MMC.csv")
     restricted_arpav_df = arpav_df[(arpav_df.index > from_date) & (arpav_df.index < to_date)]
     arpav_53_similarity = analysis.similarity_common_variables(restricted_arpav_df, restricted_smart53_df, "ARPAV",
-                                                               "SMART53", show=False, folder=folder)[2:]
+                                                               "SMART53", show=False, folder=folder,
+                                                               weather_df=restricted_weather_df)[2:]
     arpav_54_similarity = analysis.similarity_common_variables(restricted_arpav_df, restricted_smart54_df, "ARPAV",
-                                                               "SMART54", show=False, folder=folder)[2:]
+                                                               "SMART54", show=False, folder=folder,
+                                                               weather_df=restricted_weather_df)[2:]
     ibe_similarity = analysis.similarity_common_variables(restricted_smart53_df, restricted_smart54_df, "SMART53",
-                                                          "SMART54", show=False, folder=folder)[2:]
+                                                          "SMART54", show=False, folder=folder,
+                                                          weather_df=restricted_weather_df)[2:]
 
     graph_directory = Path(folder)
     graph_directory.mkdir(parents=True, exist_ok=True)
@@ -52,7 +60,8 @@ def arpav_ibe_comparison():
                 label_y = h + ax_range * 0.02
             else:
                 label_y = h - ax_range * 0.02
-            ax.annotate(f"{p.get_height():.2f}", (p.get_x() + p.get_width() / 2., label_y), ha="center", va="center", fontsize=4)
+            ax.annotate(f"{p.get_height():.2f}", (p.get_x() + p.get_width() / 2., label_y), ha="center", va="center",
+                        fontsize=4)
         ax.legend(prop={'size': 6})
         plt.tight_layout()
         graph_filename = graph_directory.joinpath(f"{title} - ARPAV v IBE.png")
@@ -61,6 +70,10 @@ def arpav_ibe_comparison():
 
 
 def ibe_monthly_analysis(ibe_a_name, ibe_b_name):
+    print(f"Start month analysis between {ibe_a_name} and {ibe_b_name}")
+    rain_df = weather_arpav.read_rain_ARPAV_station("ARPAV_BARDOLINO/precipitazioni.csv")
+    wind_df = weather_arpav.read_wind_ARPAV_station("ARPAV_BARDOLINO/vel_vento.csv")
+    weather_df = weather_arpav.compute_pollutant_dispersion(rain_df, wind_df)
     a_df = ibe.read_IBE_sensor(f"{ibe_a_name}.json", f"{ibe_a_name}.params.json")
     b_df = ibe.read_IBE_sensor(f"{ibe_b_name}.json", f"{ibe_b_name}.params.json")
     units = {
@@ -76,6 +89,7 @@ def ibe_monthly_analysis(ibe_a_name, ibe_b_name):
     for month in range(7, 13, 2):
         from_date = pd.to_datetime(f"2020-{month:02}-01", utc=True)
         to_date = pd.to_datetime(f"2020-{month:02}-01", utc=True) + MonthEnd(2)
+        restricted_weather_df = weather_df[(weather_df.index >= from_date) & (weather_df.index <= to_date)]
         restricted_a_df = a_df[(a_df.index > from_date) & (a_df.index < to_date)]
         restricted_b_df = b_df[(b_df.index > from_date) & (b_df.index < to_date)]
         restricted_a_df = ibe.clip_IBE_data(restricted_a_df)
@@ -86,7 +100,9 @@ def ibe_monthly_analysis(ibe_a_name, ibe_b_name):
                                              show=False,
                                              variables=["NO2", "O3", "CO", "T", "RH", "CO2", "PM10", "PM2.5"],
                                              units=units,
-                                             folder=f"IBE comparison - 2020-{month:02}")
+                                             folder=f"IBE comparison - 2020-{month:02}",
+                                             weather_df=restricted_weather_df)
+        print(f"IBE comparison - 2020-{month:02} completed")
         plt.close("all")
 
 
@@ -165,7 +181,7 @@ def ibe_plot_difference(ibe_a_name, ibe_b_name, variables=None, units=None, from
         if v in units:
             ax[i].set_ylabel(units[v])
         abs_max = diff.abs().max()
-        ax[i].set_ylim((-abs_max*1.1, abs_max*1.1))
+        ax[i].set_ylim((-abs_max * 1.1, abs_max * 1.1))
         ax[i].axhline(0, color="red", linestyle="--", linewidth="0.7")
         plt.tight_layout()
 
@@ -181,8 +197,8 @@ def ibe_plot_difference(ibe_a_name, ibe_b_name, variables=None, units=None, from
 
 
 if __name__ == '__main__':
-    arpav_ibe_comparison()
-    # ibe_monthly_analysis("SMART53", "SMART56")
+    # arpav_ibe_comparison()
+    ibe_monthly_analysis("SMART53", "SMART55")
     # ibe_trend()
     # ibe_plot_difference("SMART53", "SMART55", from_date="2020-08-01", to_date="2020-08-31")
     # ibe_plot_difference("SMART53", "SMART55", from_date="2020-12-01")
