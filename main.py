@@ -10,16 +10,16 @@ import ibe
 
 
 def arpav_ibe_comparison():
-    rain_df = weather_arpav.read_rain_ARPAV_station("ARPAV_BARDOLINO/precipitazioni.csv")
-    wind_df = weather_arpav.read_wind_ARPAV_station("ARPAV_BARDOLINO/vel_vento.csv")
+    rain_df = weather_arpav.read_rain_ARPAV_station("Dati/ARPAV_BARDOLINO/precipitazioni.csv")
+    wind_df = weather_arpav.read_wind_ARPAV_station("Dati/ARPAV_BARDOLINO/vel_vento.csv")
     weather_df = weather_arpav.compute_pollutant_dispersion(rain_df, wind_df)
     folder = "similarity_graphs"
     from_date = "2020-07-01"
     to_date = "2020-07-26"
     restricted_weather_df = weather_df[(weather_df.index >= from_date) & (weather_df.index <= to_date)]
-    smart53_df = ibe.read_IBE_sensor(f"SMART53.json", f"SMART53.params.json")
+    smart53_df = ibe.read_IBE_sensor(f"Dati/Dati IBE/SMART53.json", f"Dati/Dati IBE/SMART53.params.json")
     restricted_smart53_df = smart53_df[(smart53_df.index > from_date) & (smart53_df.index < to_date)]
-    smart54_df = ibe.read_IBE_sensor(f"SMART54.json", f"SMART54.params.json")
+    smart54_df = ibe.read_IBE_sensor(f"Dati/Dati IBE/SMART54.json", f"Dati/Dati IBE/SMART54.params.json")
     restricted_smart54_df = smart54_df[(smart54_df.index > from_date) & (smart54_df.index < to_date)]
 
     # clip IBE data
@@ -29,7 +29,7 @@ def arpav_ibe_comparison():
     restricted_smart53_df = analysis.outlier_removal(restricted_smart53_df)
     restricted_smart54_df = analysis.outlier_removal(restricted_smart54_df)
 
-    arpav_df = arpav.read_ARPAV_station("MMC.csv")
+    arpav_df = arpav.read_ARPAV_station("Dati/Unità mobile - Garda/MMC.csv")
     restricted_arpav_df = arpav_df[(arpav_df.index > from_date) & (arpav_df.index < to_date)]
     arpav_53_similarity = analysis.similarity_common_variables(restricted_arpav_df, restricted_smart53_df, "ARPAV",
                                                                "SMART53", show=False, folder=folder,
@@ -71,11 +71,11 @@ def arpav_ibe_comparison():
 
 def ibe_monthly_analysis(ibe_a_name, ibe_b_name):
     print(f"Start month analysis between {ibe_a_name} and {ibe_b_name}")
-    rain_df = weather_arpav.read_rain_ARPAV_station("ARPAV_BARDOLINO/precipitazioni.csv")
-    wind_df = weather_arpav.read_wind_ARPAV_station("ARPAV_BARDOLINO/vel_vento.csv")
+    rain_df = weather_arpav.read_rain_ARPAV_station("Dati/ARPAV_BARDOLINO/precipitazioni.csv")
+    wind_df = weather_arpav.read_wind_ARPAV_station("Dati/ARPAV_BARDOLINO/vel_vento.csv")
     weather_df = weather_arpav.compute_pollutant_dispersion(rain_df, wind_df)
-    a_df = ibe.read_IBE_sensor(f"{ibe_a_name}.json", f"{ibe_a_name}.params.json")
-    b_df = ibe.read_IBE_sensor(f"{ibe_b_name}.json", f"{ibe_b_name}.params.json")
+    a_df = ibe.read_IBE_sensor(f"Dati/Dati IBE/{ibe_a_name}.json", f"Dati/Dati IBE/{ibe_a_name}.params.json")
+    b_df = ibe.read_IBE_sensor(f"Dati/Dati IBE/{ibe_b_name}.json", f"Dati/Dati IBE/{ibe_b_name}.params.json")
     units = {
         "NO2": "µg/m3",
         "O3": "µg/m3",
@@ -115,8 +115,8 @@ def ibe_trend():
         "PM10": 300,
         "CO2": 1000
     }
-    smart53_df = ibe.read_IBE_sensor(f"SMART53.json", f"SMART53.params.json")
-    smart54_df = ibe.read_IBE_sensor(f"SMART54.json", f"SMART54.params.json")
+    smart53_df = ibe.read_IBE_sensor(f"Dati/Dati IBE/SMART53.json", f"Dati/Dati IBE/SMART53.params.json")
+    smart54_df = ibe.read_IBE_sensor(f"Dati/Dati IBE/SMART54.json", f"Dati/Dati IBE/SMART54.params.json")
     smart53_df = ibe.clip_IBE_data(smart53_df)
     smart53_df = analysis.outlier_removal(smart53_df)
     smart54_df = ibe.clip_IBE_data(smart54_df)
@@ -146,8 +146,8 @@ def ibe_plot_difference(ibe_a_name, ibe_b_name, variables=None, units=None, from
             "PM2.5": "µg/m3",
             "CO2": "ppm"
         }
-    ibe_a_df = ibe.read_IBE_sensor(f"{ibe_a_name}.json", f"{ibe_a_name}.params.json")
-    ibe_b_df = ibe.read_IBE_sensor(f"{ibe_b_name}.json", f"{ibe_b_name}.params.json")
+    ibe_a_df = ibe.read_IBE_sensor(f"Dati/Dati IBE/{ibe_a_name}.json", f"Dati/Dati IBE/{ibe_a_name}.params.json")
+    ibe_b_df = ibe.read_IBE_sensor(f"Dati/Dati IBE/{ibe_b_name}.json", f"Dati/Dati IBE/{ibe_b_name}.params.json")
     if from_date is not None:
         ibe_a_df = ibe_a_df[ibe_a_df.index >= from_date]
         ibe_b_df = ibe_b_df[ibe_b_df.index >= from_date]

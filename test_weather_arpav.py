@@ -20,10 +20,9 @@ def plot_as_heatmap(weather_df, ax):
 
 def main():
     f, ax = plt.subplots()
-    rain_df = weather_arpav.read_rain_ARPAV_station("ARPAV_BARDOLINO/precipitazioni.csv")
-    wind_df = weather_arpav.read_wind_ARPAV_station("ARPAV_BARDOLINO/vel_vento.csv")
+    rain_df = weather_arpav.read_rain_ARPAV_station("Dati/ARPAV_BARDOLINO/precipitazioni.csv")
+    wind_df = weather_arpav.read_wind_ARPAV_station("Dati/ARPAV_BARDOLINO/vel_vento.csv")
     weather_df = weather_arpav.compute_pollutant_dispersion(rain_df, wind_df)
-    weather_df.to_csv("pollutant_dispersion.csv")
     f2, ax2 = plt.subplots()
     plot_as_heatmap(weather_df, ax=ax2)
     weather_df.plot(ax=ax)
