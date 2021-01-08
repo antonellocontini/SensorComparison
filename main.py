@@ -123,10 +123,8 @@ def ibe_trend():
     smart54_df = analysis.outlier_removal(smart54_df)
     freq = pd.offsets.Week(weekday=0, n=2)
     # freq = "MS"
-    analysis.bar_plot_resampled(smart53_df, freq, show=False, name="SMART53",
-                                variables=["NO2", "O3", "CO", "T", "RH", "PM10", "PM2.5"])
     analysis.bar_plot_resampled(smart53_df, freq, show=True, name="SMART53",
-                                variables=["CO2"])
+                                variables=["NO2", "O3", "PM10", "PM2.5"])
 
 
 # plotta il grafico delle differenze tra due sensori IBIMET
@@ -197,8 +195,8 @@ def ibe_plot_difference(ibe_a_name, ibe_b_name, variables=None, units=None, from
 
 
 if __name__ == '__main__':
-    # arpav_ibe_comparison()
-    ibe_monthly_analysis("SMART53", "SMART55")
+    arpav_ibe_comparison()
+    # ibe_monthly_analysis("SMART53", "SMART55")
     # ibe_trend()
     # ibe_plot_difference("SMART53", "SMART55", from_date="2020-08-01", to_date="2020-08-31")
     # ibe_plot_difference("SMART53", "SMART55", from_date="2020-12-01")
