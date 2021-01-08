@@ -1,12 +1,8 @@
-import analysis
+from lib import analysis, arpav, ibe, weather_arpav
 import pandas as pd
 from pandas.tseries.offsets import MonthEnd
 import matplotlib.pyplot as plt
 from pathlib import Path
-
-import arpav
-import weather_arpav
-import ibe
 
 
 def arpav_ibe_comparison():

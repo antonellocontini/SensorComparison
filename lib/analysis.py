@@ -285,16 +285,16 @@ def bar_plot_resampled(df, freq, name=None, variables=None, show=False):
 def old_main():
     from_date = "2020-07-01"
     to_date = "2020-07-27"
-    smart53_df = read_IBE_sensor(f"Dati/Dati IBE/SMART53.json", f"Dati/Dati IBE/SMART53.params.json")
+    smart53_df = read_IBE_sensor(f"../Dati/Dati IBE/SMART53.json", f"Dati/Dati IBE/SMART53.params.json")
     restricted_smart53_df = smart53_df[(smart53_df.index > from_date) & (smart53_df.index < to_date)]
-    smart54_df = read_IBE_sensor(f"Dati/Dati IBE/SMART54.json", f"Dati/Dati IBE/SMART54.params.json")
+    smart54_df = read_IBE_sensor(f"../Dati/Dati IBE/SMART54.json", f"Dati/Dati IBE/SMART54.params.json")
     restricted_smart54_df = smart54_df[(smart54_df.index > from_date) & (smart54_df.index < to_date)]
 
     # remove outliers
     restricted_smart53_df = outlier_removal(restricted_smart53_df)
     restricted_smart54_df = outlier_removal(restricted_smart54_df)
 
-    arpav_df = arpav.read_ARPAV_station("Dati/Unità mobile - Garda/MMC.csv")
+    arpav_df = arpav.read_ARPAV_station("../Dati/Unità mobile - Garda/MMC.csv")
     restricted_arpav_df = arpav_df[(arpav_df.index > from_date) & (arpav_df.index < to_date)]
     # plot_common_variables(restricted_arpav_df, restricted_smart53_df, True)
     # similarity_common_variables(restricted_arpav_df, restricted_smart53_df, "ARPAV", "SMART53", show=False)
