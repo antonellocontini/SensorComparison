@@ -100,6 +100,16 @@ def similarity_common_variables(reference_df, test_df, reference_name, test_name
     if folder is None:
         folder = "similarity_graphs"
 
+    merge_df = pd.merge(reference_df.add_prefix(f"{reference_name} "), test_df.add_prefix(f"{test_name} "), how="inner", left_index=True, right_index=True)
+    for v in variables:
+        f_boxplot, ax_boxplot = plt.subplots()
+        merge_df.boxplot(ax=ax_boxplot, column=[f"{reference_name} {v}", f"{test_name} {v}"])
+        if save_graphs:
+            graph_directory = Path(f"{folder}/{reference_name} v {test_name}")
+            graph_directory.mkdir(parents=True, exist_ok=True)
+            graph_filename = graph_directory.joinpath(f"{v}_boxplot.png")
+            plt.savefig(graph_filename, dpi=300)
+
     pearson_rs = {}
     nrmses = {}
     rmses = {}
