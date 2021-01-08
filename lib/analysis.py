@@ -8,8 +8,8 @@ from sklearn.metrics import mean_squared_error
 from pathlib import Path
 import datetime as dt
 
-import arpav
-from ibe import read_IBE_sensor
+from lib import arpav
+from lib.ibe import read_IBE_sensor
 
 
 def outlier_removal(df):
