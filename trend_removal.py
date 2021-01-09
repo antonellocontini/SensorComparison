@@ -26,8 +26,8 @@ def find_trend_model(ibe_ser, freq="3W"):
     segments = [g for n, g in ibe_ser.groupby(pd.Grouper(freq=freq))]
     start_time = segments[0].index[0]
     result_df = None
-    for s in range(10):
-        trended = segments[s]
+    for s in segments:
+        trended = s
         df = linear_regression_parameters(trended, start_time)
         if result_df is None:
             result_df = df.copy(deep=True)
