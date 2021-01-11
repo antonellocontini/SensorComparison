@@ -33,25 +33,25 @@ def plot_pollutant_dispersion(weather_df, ax=None, plot_low=True, plot_medium=Tr
         plt.show()
 
 
-# Si passano due dataframe e l'elenco di colonne in comune
-# i due dataframe devono avere la stessa frequenza temporale
-# vedi df.resample()
-# la funzione calcola R e RMSE per ogni variabile, sia complessivamente
-# che in moving window.
-# Il parametro variables accetta una lista di stringhe con i nomi dei parametri
-# da analizzare, questi nomi devono essere presenti nelle colonne dei due dataframe
-# passati in input.
-# Di default plotta sia su schermo che su file,
-# con il parametro folder è possibile specificare la cartella nella quale
-# salvare i plot.
-# Ritorna un array [mov_r, mov_rmse, r, rmse, nrmse]
-# Ogni elemento è un dataframe con le statistiche per ogni variabile
-# mov_r e mov_rmse contengono una colonna per variabile con la statistica
-# calcolata in moving window.
-# r, rmse e nrmse sono composti di una sola colonna, una riga per variabile
-# e ogni valore corrisponde al valore della statistica per quella variabile.
 def similarity_common_variables(reference_df, test_df, reference_name, test_name, variables=None, units=None, window=24,
                                 save_graphs=True, show=True, folder=None, weather_df=None):
+    """Si passano due dataframe e l'elenco di colonne in comune
+    i due dataframe devono avere la stessa frequenza temporale
+    vedi df.resample().
+    La funzione calcola R e RMSE per ogni variabile, sia complessivamente
+    che in moving window.
+    Il parametro variables accetta una lista di stringhe con i nomi dei parametri
+    da analizzare, questi nomi devono essere presenti nelle colonne dei due dataframe
+    passati in input.
+    Di default plotta sia su schermo che su file,
+    con il parametro folder è possibile specificare la cartella nella quale
+    salvare i plot.
+    Ritorna un array [mov_r, mov_rmse, r, rmse, nrmse]
+    Ogni elemento è un dataframe con le statistiche per ogni variabile
+    mov_r e mov_rmse contengono una colonna per variabile con la statistica
+    calcolata in moving window.
+    r, rmse e nrmse sono composti di una sola colonna, una riga per variabile
+    e ogni valore corrisponde al valore della statistica per quella variabile."""
     def pearson(ser):
         try:
             reference_ser = reference_df[v][ser.index].dropna()
