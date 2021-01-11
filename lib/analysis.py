@@ -7,19 +7,21 @@ from scipy import stats
 from sklearn.metrics import mean_squared_error
 from pathlib import Path
 import datetime as dt
+from typing import List, Dict, Union
 
 from lib import arpav
 from lib.ibe import read_IBE_sensor
 
 
-def outlier_removal(df):
+def outlier_removal(df: pd.DataFrame):
     for col in df:
         z_score = (df[col] - df[col].mean()) / df[col].std(ddof=0)
         df[col][z_score >= 3] = np.nan
     return df
 
 
-def plot_pollutant_dispersion(weather_df, ax=None, plot_low=True, plot_medium=True, plot_high=True, show=False):
+def plot_pollutant_dispersion(weather_df: pd.DataFrame, ax=None, plot_low=True, plot_medium=True, plot_high=True,
+                              show=False):
     if ax is None:
         _, ax = plt.subplots()
     for index, row in weather_df.iterrows():
@@ -33,8 +35,9 @@ def plot_pollutant_dispersion(weather_df, ax=None, plot_low=True, plot_medium=Tr
         plt.show()
 
 
-def similarity_common_variables(reference_df, test_df, reference_name, test_name, variables=None, units=None, window=24,
-                                save_graphs=True, show=True, folder=None, weather_df=None):
+def similarity_common_variables(reference_df: pd.DataFrame, test_df: pd.DataFrame, reference_name: str, test_name: str,
+                                variables: List[str] = None, units: Dict[str, str] = None, window=24,
+                                save_graphs=True, show=True, folder: str = None, weather_df: pd.DataFrame = None):
     """Si passano due dataframe e l'elenco di colonne in comune
     i due dataframe devono avere la stessa frequenza temporale
     vedi df.resample().
@@ -52,6 +55,7 @@ def similarity_common_variables(reference_df, test_df, reference_name, test_name
     calcolata in moving window.
     r, rmse e nrmse sono composti di una sola colonna, una riga per variabile
     e ogni valore corrisponde al valore della statistica per quella variabile."""
+
     def pearson(ser):
         try:
             reference_ser = reference_df[v][ser.index].dropna()
@@ -100,7 +104,8 @@ def similarity_common_variables(reference_df, test_df, reference_name, test_name
     if folder is None:
         folder = "similarity_graphs"
 
-    merge_df = pd.merge(reference_df.add_prefix(f"{reference_name} "), test_df.add_prefix(f"{test_name} "), how="inner", left_index=True, right_index=True)
+    merge_df = pd.merge(reference_df.add_prefix(f"{reference_name} "), test_df.add_prefix(f"{test_name} "), how="inner",
+                        left_index=True, right_index=True)
     for v in variables:
         f_boxplot, ax_boxplot = plt.subplots()
         merge_df.boxplot(ax=ax_boxplot, column=[f"{reference_name} {v}", f"{test_name} {v}"])
@@ -234,7 +239,7 @@ def similarity_common_variables(reference_df, test_df, reference_name, test_name
     return [mov_pearsons_df, mov_rmse_df, pearson_df, rmse_df, nrmse_df]
 
 
-def plot_common_variables(arpav_df, ibe_df, show=False):
+def plot_common_variables(arpav_df: pd.DataFrame, ibe_df: pd.DataFrame, show=False):
     # f, ax = plt.subplots(2, 3)
     variables = [["NO2", "O3", "CO"], ["T", "RH", None]]
     i = 0
@@ -256,7 +261,8 @@ def plot_common_variables(arpav_df, ibe_df, show=False):
 # dopo aver ricampionato alla frequenza specificata
 # Si può specificare un sottoinsieme delle colonne del dataframe
 # passando nel parametro variables una lista di stringhe
-def bar_plot_resampled(df, freq, name=None, variables=None, show=False):
+def bar_plot_resampled(df: pd.DataFrame, freq: Union[str, pd.tseries.offsets.DateOffset], name=None, variables=None,
+                       show=False):
     if variables is not None:
         copy_df = df[variables].resample(freq).mean()
     else:
@@ -315,5 +321,5 @@ def old_main():
                                     folder=f"IBE comparison - 2020-{month:02}")
 
 
-if __name__ == "__main__":
-    old_main()
+# if __name__ == "__main__":
+#    old_main()

@@ -1,11 +1,12 @@
 import pandas as pd
 from matplotlib import pyplot as plt
 from pandas._libs.tslibs.offsets import MonthEnd
+from typing import List, Dict
 
 from lib import weather_arpav, ibe, analysis
 
 
-def ibe_monthly_analysis(ibe_a_name, ibe_b_name):
+def ibe_monthly_analysis(ibe_a_name: str, ibe_b_name: str):
     print(f"Start month analysis between {ibe_a_name} and {ibe_b_name}")
     rain_df = weather_arpav.read_rain_ARPAV_station("Dati/ARPAV_BARDOLINO/precipitazioni.csv")
     wind_df = weather_arpav.read_wind_ARPAV_station("Dati/ARPAV_BARDOLINO/vel_vento.csv")
@@ -63,7 +64,8 @@ def ibe_trend():
                                 variables=["NO2", "O3", "PM10", "PM2.5"])
 
 
-def ibe_plot_difference(ibe_a_name, ibe_b_name, variables=None, units=None, from_date=None, to_date=None):
+def ibe_plot_difference(ibe_a_name: str, ibe_b_name: str, variables: List[str] = None, units: Dict[str, str] = None,
+                        from_date: str = None, to_date: str = None):
     """plotta il grafico delle differenze tra due sensori IBIMET.
     è possibile indicare le variabili da plottare come lista di stringhe
     e le loro unità di misura come dizionario

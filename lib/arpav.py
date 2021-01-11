@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def read_ARPAV_station(data_filename):
+def read_ARPAV_station(data_filename: str):
     df = pd.read_csv(data_filename)
     # df["Datetime"] = pd.to_datetime(df["Datetime"], format="%d/%m/%Y %H", utc=True)
 
