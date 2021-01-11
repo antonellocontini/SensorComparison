@@ -13,7 +13,20 @@ from lib import arpav
 from lib.ibe import read_IBE_sensor
 
 
-def outlier_removal(df: pd.DataFrame):
+def outlier_removal(df: pd.DataFrame) -> pd.DataFrame:
+    """Rimuove gli outlier da un dataframe dato input
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Il dataframe su cui rimuovere gli outliers
+
+    Returns
+    -------
+    pd.DataFrame
+        Il dataframe con gli outliers rimossi
+    """
+
     for col in df:
         z_score = (df[col] - df[col].mean()) / df[col].std(ddof=0)
         df[col][z_score >= 3] = np.nan
@@ -22,6 +35,27 @@ def outlier_removal(df: pd.DataFrame):
 
 def plot_pollutant_dispersion(weather_df: pd.DataFrame, ax=None, plot_low=True, plot_medium=True, plot_high=True,
                               show=False):
+    """Sovraimpone su un plot la visualizzazione della dispersione degli inquinanti
+
+    Parameters
+    ----------
+    weather_df : pd.DataFrame
+        Un dataframe contenente la colonna "Dispersion" (v. compute_pollutant_dispersion())
+    ax
+    plot_low : bool
+        True per plottare le condizioni di bassa dispersione
+    plot_medium : bool
+        True per plottare le condizioni di media dispersione
+    plot_high : bool
+        True per plottare le condizioni di alta dispersione
+    show : bool
+        True per visualizzare subito il plot
+
+    Returns
+    -------
+
+    """
+
     if ax is None:
         _, ax = plt.subplots()
     for index, row in weather_df.iterrows():
@@ -38,23 +72,47 @@ def plot_pollutant_dispersion(weather_df: pd.DataFrame, ax=None, plot_low=True, 
 def similarity_common_variables(reference_df: pd.DataFrame, test_df: pd.DataFrame, reference_name: str, test_name: str,
                                 variables: List[str] = None, units: Dict[str, str] = None, window=24,
                                 save_graphs=True, show=True, folder: str = None, weather_df: pd.DataFrame = None):
-    """Si passano due dataframe e l'elenco di colonne in comune
-    i due dataframe devono avere la stessa frequenza temporale
-    vedi df.resample().
-    La funzione calcola R e RMSE per ogni variabile, sia complessivamente
-    che in moving window.
-    Il parametro variables accetta una lista di stringhe con i nomi dei parametri
-    da analizzare, questi nomi devono essere presenti nelle colonne dei due dataframe
-    passati in input.
-    Di default plotta sia su schermo che su file,
-    con il parametro folder è possibile specificare la cartella nella quale
-    salvare i plot.
-    Ritorna un array [mov_r, mov_rmse, r, rmse, nrmse]
-    Ogni elemento è un dataframe con le statistiche per ogni variabile
-    mov_r e mov_rmse contengono una colonna per variabile con la statistica
-    calcolata in moving window.
-    r, rmse e nrmse sono composti di una sola colonna, una riga per variabile
-    e ogni valore corrisponde al valore della statistica per quella variabile."""
+    """Confronta due dataframe producendo per ogni colonna plot di RMSE, NRMSE e indice di correlazione,
+    sia su tutte le righe che in finestra mobile.
+
+    I due dataframe devono avere la stessa frequenza temporale (v. df.resample()).
+
+    Parameters
+    ----------
+    reference_df : pd.DataFrame
+        Questo dataframe viene preso come riferimento per la normalizzazione dell'RMSE
+    test_df : pd.DataFrame
+        Secondo dataframe
+    reference_name : str
+        Nome da dare nei plot al dataframe di riferimento
+    test_name : str
+        Nome da dare nei plot al dataframe di test
+    variables : List[str]
+        Elenco delle colonne da analizzare, devono essere presenti in entrambi i dataframe
+    units : Dict[str, str]
+        Dizionario con le unità da misura per ogni colonna, visualizzate nei plot
+    window : int
+        Dimensione della finestra mobile
+    save_graphs : bool
+        Se True salva i plot su disco
+    show : bool
+        Se True mostra i plot su schermo
+    folder : str
+        Directory nella quale salvare i plot
+    weather_df : pd.DataFrame
+        Se specificato, mostra all'interno dei plot le condizioni di dispersione degli inquinanti.
+        Il dataframe deve avere una colonna denominata "Dispersion" (v. compute_pollutant_dispersion())
+
+    Returns
+    -------
+    List[Union[pd.DataFrame, pd.Series, None]]
+        Un array di 4 elementi [mov_r, mov_rmse, r, rmse, nrmse]:
+        Ogni elemento è un dataframe con le statistiche per ogni variabile
+        mov_r e mov_rmse contengono una colonna per variabile con la statistica
+        calcolata in moving window.
+        r, rmse e nrmse sono composti di una sola colonna, una riga per variabile
+        e ogni valore corrisponde al valore della statistica per quella variabile.
+    """
 
     def pearson(ser):
         try:
@@ -261,8 +319,29 @@ def plot_common_variables(arpav_df: pd.DataFrame, ibe_df: pd.DataFrame, show=Fal
 # dopo aver ricampionato alla frequenza specificata
 # Si può specificare un sottoinsieme delle colonne del dataframe
 # passando nel parametro variables una lista di stringhe
-def bar_plot_resampled(df: pd.DataFrame, freq: Union[str, pd.tseries.offsets.DateOffset], name=None, variables=None,
+def bar_plot_resampled(df: pd.DataFrame, freq: Union[str, pd.tseries.offsets.DateOffset], name=None,
+                       variables: List[str] = None,
                        show=False):
+    """Visualizza il dataframe dato in input come grafico a barre, dopo aver ricampionato alla frequenza specificata
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Dataframe con i dati da visualizzare
+    freq : Union[str, pd.tseries.offsets.DateOffset]
+        Per ora supporta solamente offset mensili e settimanali
+        https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#dateoffset-objects
+    name : str
+        Titolo da dare al plot
+    variables : List[str]
+        Elenco delle colonne da plottare (se non specificato verranno plottate tutte)
+    show : bool
+        settato a True mostra a schermo il plot
+
+    Returns
+    -------
+
+    """
     if variables is not None:
         copy_df = df[variables].resample(freq).mean()
     else:
@@ -319,7 +398,6 @@ def old_main():
         similarity_common_variables(restricted_smart53_df, restricted_smart54_df, "SMART53", "SMART54", show=False,
                                     variables=["NO2", "O3", "CO", "T", "RH", "CO2", "PM10", "PM2.5"],
                                     folder=f"IBE comparison - 2020-{month:02}")
-
 
 # if __name__ == "__main__":
 #    old_main()

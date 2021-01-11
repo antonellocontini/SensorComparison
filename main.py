@@ -5,6 +5,12 @@ from pathlib import Path
 
 
 def arpav_ibe_comparison():
+    """Confronto dei dati IBE con la stazione mobile ARPAV nel mese di Luglio 2020
+
+    Returns
+    -------
+
+    """
     rain_df = weather_arpav.read_rain_ARPAV_station("Dati/ARPAV_BARDOLINO/precipitazioni.csv")
     wind_df = weather_arpav.read_wind_ARPAV_station("Dati/ARPAV_BARDOLINO/vel_vento.csv")
     weather_df = weather_arpav.compute_pollutant_dispersion(rain_df, wind_df)
