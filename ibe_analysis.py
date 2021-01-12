@@ -11,8 +11,8 @@ def ibe_monthly_analysis(ibe_a_name: str, ibe_b_name: str):
     rain_df = weather_arpav.read_rain_ARPAV_station("Dati/ARPAV_BARDOLINO/precipitazioni.csv")
     wind_df = weather_arpav.read_wind_ARPAV_station("Dati/ARPAV_BARDOLINO/vel_vento.csv")
     weather_df = weather_arpav.compute_pollutant_dispersion(rain_df, wind_df)
-    a_df = ibe.read_IBE_sensor(f"Dati/Dati IBE/{ibe_a_name}.json", f"Dati/Dati IBE/{ibe_a_name}.params.json")
-    b_df = ibe.read_IBE_sensor(f"Dati/Dati IBE/{ibe_b_name}.json", f"Dati/Dati IBE/{ibe_b_name}.params.json")
+    a_df = ibe.read_IBE_sensor(f"Dati/Dati IBE/{ibe_a_name}_extended.json", f"Dati/Dati IBE/{ibe_a_name}.params.json")
+    b_df = ibe.read_IBE_sensor(f"Dati/Dati IBE/{ibe_b_name}_extended.json", f"Dati/Dati IBE/{ibe_b_name}.params.json")
     units = {
         "NO2": "µg/m3",
         "O3": "µg/m3",
@@ -23,9 +23,12 @@ def ibe_monthly_analysis(ibe_a_name: str, ibe_b_name: str):
         "PM2.5": "µg/m3",
         "CO2": "ppm"
     }
-    for month in range(7, 13, 2):
-        from_date = pd.to_datetime(f"2020-{month:02}-01", utc=True)
-        to_date = pd.to_datetime(f"2020-{month:02}-01", utc=True) + MonthEnd(2)
+    from_dates = [pd.to_datetime(f"2020-{month:02}-01", utc=True) for month in range(10, 13, 2)]
+    to_dates = [d + MonthEnd(2) for d in from_dates]
+    for i in range(len(from_dates)):
+        from_date = from_dates[i]
+        to_date = to_dates[i]
+        folder_name = f"IBE comparison - {from_date.strftime('%Y-%m')} to {to_date.strftime('%Y-%m')}"
         restricted_weather_df = weather_df[(weather_df.index >= from_date) & (weather_df.index <= to_date)]
         restricted_a_df = a_df[(a_df.index > from_date) & (a_df.index < to_date)]
         restricted_b_df = b_df[(b_df.index > from_date) & (b_df.index < to_date)]
@@ -37,9 +40,9 @@ def ibe_monthly_analysis(ibe_a_name: str, ibe_b_name: str):
                                              show=False,
                                              variables=["NO2", "O3", "CO", "T", "RH", "CO2", "PM10", "PM2.5"],
                                              units=units,
-                                             folder=f"IBE comparison - 2020-{month:02}",
+                                             folder=folder_name,
                                              weather_df=restricted_weather_df)
-        print(f"IBE comparison - 2020-{month:02} completed")
+        print(f"{folder_name} completed")
         plt.close("all")
 
 
