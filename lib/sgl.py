@@ -10,7 +10,7 @@ import scipy.stats as stats
 from typing import Dict, Union
 
 
-def querySensor(sensorURI, fromTime, toTime, valueName):
+def query_ensor(sensorURI, fromTime, toTime, valueName):
     """Query al cloud SGL
 
     Parameters
@@ -59,7 +59,7 @@ def querySensor(sensorURI, fromTime, toTime, valueName):
     return result
 
 
-def multidayQuery(sensorURI, fromTime, toTime, valueName):
+def multiday_query(sensorURI, fromTime, toTime, valueName):
     """Wrapper per richiedere periodi temporali più estesi di un giorno senza perdere risoluzione temporale
 
     Parameters
@@ -80,9 +80,9 @@ def multidayQuery(sensorURI, fromTime, toTime, valueName):
     nDays = int(l[0])
     period = l[1]
     if period != "day":
-        return querySensor(sensorURI, fromTime, toTime, valueName)
+        return query_ensor(sensorURI, fromTime, toTime, valueName)
     for i in range(nDays):
-        temp = querySensor(sensorURI, "1-day", toTime, valueName)
+        temp = query_ensor(sensorURI, "1-day", toTime, valueName)
         if result is None:
             result = temp
         else:
@@ -94,10 +94,10 @@ def multidayQuery(sensorURI, fromTime, toTime, valueName):
     return result
 
 
-def getTrafficSensorDf(sensorURI: str, fromTime: str, toTime: str, resampleFreq: str = None, remove_outliers=False):
+def get_traffic_sensor_df(sensorURI: str, fromTime: str, toTime: str, resampleFreq: str = None, remove_outliers=False):
     """Query a SGL di un sensore del traffico
 
-    Vedi querySensor() per sensorURI, fromTime e toTime
+    Vedi query_ensor() per sensorURI, fromTime e toTime
 
     Parameters
     ----------
@@ -115,8 +115,8 @@ def getTrafficSensorDf(sensorURI: str, fromTime: str, toTime: str, resampleFreq:
     values = ["count", "sumSpeed"]
     result = None
     for v in values:
-        # data = querySensor(sensorURI, fromTime, toTime, v)
-        data = multidayQuery(sensorURI, fromTime, toTime, v)
+        # data = query_ensor(sensorURI, fromTime, toTime, v)
+        data = multiday_query(sensorURI, fromTime, toTime, v)
         df = pd.DataFrame(data, columns=["measuredTime", v])
         df["measuredTime"] = pd.to_datetime(df["measuredTime"])
         df.index = df["measuredTime"]
@@ -138,3 +138,21 @@ def getTrafficSensorDf(sensorURI: str, fromTime: str, toTime: str, resampleFreq:
     result.loc[~np.isfinite(result["avgSpeed"]), "avgSpeed"] = np.nan
     result["avgSpeed"] = result["avgSpeed"].interpolate()
     return result
+
+
+def read_traffic_sensor_from_csv(path: str) -> pd.DataFrame:
+    """Leggi dati del traffico da .csv, il file dev'essere nel formato letto da SGL
+
+    Parameters
+    ----------
+    path : str
+
+    Returns
+    -------
+    pd.DataFrame
+    """
+
+    df = pd.read_csv(path)
+    df["measuredTime"] = pd.to_datetime(df["measuredTime"])
+    df.set_index("measuredTime", inplace=True)
+    return df
