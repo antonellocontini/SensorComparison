@@ -4,9 +4,20 @@ Mini-libreria per l'analisi e il confronto dei dati provenienti dai sensori
 IBE e ARPAV.
 Usa le librerie Pandas, scipy, scikit-learn e matplotlib su Python 3.8
 
+## Come usarla
+Nella cartella `lib` sono inclusi metodi per leggere i dataset presenti
+in questo repository. Inoltre nel modulo `analysis` sono presenti
+alcuni metodi per facilitare il confronto tra i diversi dataset.
+
+Il modulo `main` fa uso di questi metodi per visualizzare un confronto
+tra i sensori IBE e la centralina mobile dell'ARPAV.
+
 ## Dati presenti
 Sono presenti sia i dati della centralina mobile ARPAV
 che i dati dei sensori IBE.
+Inoltre sono stati aggiunti i dati meteo (intensità vento e
+precipitazioni) raccolti dalla stazione ARPAV di Bardolino.
+
 ### Centralina mobile ARPAV
 Nel file MMC.csv sono presenti i dati dal 17/06/2020 ore 17
 al 27/07/2020 ore 10, periodo nel quale la centralina era dislocata
@@ -28,6 +39,12 @@ Per gli altri due mancano i dati nel periodo della centralina ARPAV
 
 Nello script i dati IBE vengono ricampionati con frequenza
 oraria per allinearli ai dati ARPAV
+
+### Stazione metereologica ARPAV Bardolino
+La stazione raccoglie con frequenza giornaliera dati sulle condizioni
+meteorologiche. In questa repository sono contenuti solamente i dati
+relativi a precipitazioni e intensità del vento, in quanto sono ritenuti
+da parte dell'ARPAV rappresentativi anche delle condizioni su Garda.
 
 ## Variabili sensori e unità di misura
 ### variabili comuni
